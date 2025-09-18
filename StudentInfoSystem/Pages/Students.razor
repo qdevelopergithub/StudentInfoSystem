@@ -11,11 +11,14 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">
-                        <i class="oi oi-people"></i> Student Information System
-                    </h3>
-                </div>
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h3 class="mb-0">
+                                <i class="oi oi-people"></i> Student Information System
+                            </h3>
+                            <button class="btn btn-light btn-sm" @onclick="ShowAddModal">
+                                <i class="oi oi-plus"></i> Add Student Info
+                            </button>
+                        </div>
                 <div class="card-body">
                     <!-- Filter Section -->
                     <div class="row mb-4">
@@ -28,7 +31,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-3 mb-3">
+                                        <div class="col-md-2 mb-3">
                                             <label for="nameFilter" class="form-label">Name</label>
                                             <input type="text" class="form-control" id="nameFilter"
                                                    @oninput="OnNameInputChanged"
@@ -62,7 +65,7 @@
                                                 }
                                             </select>
                                         </div>
-                                        <div class="col-md-3 mb-3 d-flex align-items-end">
+                                        <div class="col-md-2 mb-3 d-flex align-items-end">
                                             <button class="btn btn-outline-secondary" @onclick="ClearFilters">
                                                 <i class="oi oi-x"></i> Clear All Filters
                                             </button>
@@ -217,6 +220,95 @@
     </div>
 </div>
 
+<!-- Add Student Modal -->
+@if (showAddModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="oi oi-plus"></i> Add New Student
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="HideAddModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@newStudent" OnValidSubmit="@AddStudent">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" />
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="studentName" class="form-label">Name <span class="text-danger">*</span></label>
+                                <InputText id="studentName" class="@GetInputClass("Name")" 
+                                          @bind-Value="newStudent.Name" placeholder="Enter student name" />
+                                @if (validationErrors.ContainsKey("Name"))
+                                {
+                                    <div class="invalid-feedback">@validationErrors["Name"]</div>
+                                }
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="studentAge" class="form-label">Age <span class="text-danger">*</span></label>
+                                <InputNumber id="studentAge" class="@GetInputClass("Age")" 
+                                           @bind-Value="newStudent.Age" placeholder="Enter age" />
+                                @if (validationErrors.ContainsKey("Age"))
+                                {
+                                    <div class="invalid-feedback">@validationErrors["Age"]</div>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="studentMarks" class="form-label">Marks <span class="text-danger">*</span></label>
+                                <InputNumber id="studentMarks" class="@GetInputClass("Marks")" 
+                                           @bind-Value="newStudent.Marks" placeholder="Enter marks (0-100)" />
+                                @if (validationErrors.ContainsKey("Marks"))
+                                {
+                                    <div class="invalid-feedback">@validationErrors["Marks"]</div>
+                                }
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="studentGrade" class="form-label">Grade <span class="text-danger">*</span></label>
+                                <InputSelect id="studentGrade" class="@GetSelectClass("Grade")" 
+                                           @bind-Value="newStudent.Grade">
+                                    <option value="">Select Grade</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                    <option value="F">F</option>
+                                </InputSelect>
+                                @if (validationErrors.ContainsKey("Grade"))
+                                {
+                                    <div class="invalid-feedback">@validationErrors["Grade"]</div>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="HideAddModal">
+                                <i class="oi oi-x"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                }
+                                else
+                                {
+                                    <i class="oi oi-check"></i>
+                                }
+                                Add Student
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<Student> allStudents = new();
     private List<Student> filteredStudents = new();
@@ -235,6 +327,12 @@
 
     private int totalStudents = 0;
     private decimal averageMarks = 0;
+
+    // Modal and form variables
+    private bool showAddModal = false;
+    private bool isSubmitting = false;
+    private Student newStudent = new();
+    private Dictionary<string, string> validationErrors = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -466,5 +564,117 @@
     {
         filterTimer?.Dispose();
         return ValueTask.CompletedTask;
+    }
+
+    // Modal methods
+    private void ShowAddModal()
+    {
+        newStudent = new Student();
+        validationErrors.Clear();
+        showAddModal = true;
+        StateHasChanged();
+    }
+
+    private void HideAddModal()
+    {
+        showAddModal = false;
+        newStudent = new Student();
+        validationErrors.Clear();
+        StateHasChanged();
+    }
+
+    // Form validation
+    private bool ValidateForm()
+    {
+        validationErrors.Clear();
+        bool isValid = true;
+
+        // Name validation
+        if (string.IsNullOrWhiteSpace(newStudent.Name))
+        {
+            validationErrors["Name"] = "Name is required";
+            isValid = false;
+        }
+        else if (newStudent.Name.Length < 2)
+        {
+            validationErrors["Name"] = "Name must be at least 2 characters long";
+            isValid = false;
+        }
+
+        // Age validation
+        if (newStudent.Age <= 0)
+        {
+            validationErrors["Age"] = "Age must be greater than 0";
+            isValid = false;
+        }
+        else if (newStudent.Age < 16 || newStudent.Age > 30)
+        {
+            validationErrors["Age"] = "Age must be between 16 and 30";
+            isValid = false;
+        }
+
+        // Marks validation
+        if (newStudent.Marks < 0 || newStudent.Marks > 100)
+        {
+            validationErrors["Marks"] = "Marks must be between 0 and 100";
+            isValid = false;
+        }
+
+        // Grade validation
+        if (string.IsNullOrWhiteSpace(newStudent.Grade))
+        {
+            validationErrors["Grade"] = "Grade is required";
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    // CSS class helper methods
+    private string GetInputClass(string fieldName)
+    {
+        return validationErrors.ContainsKey(fieldName) ? "form-control is-invalid" : "form-control";
+    }
+
+    private string GetSelectClass(string fieldName)
+    {
+        return validationErrors.ContainsKey(fieldName) ? "form-select is-invalid" : "form-select";
+    }
+
+    // Add student method
+    private async Task AddStudent()
+    {
+        if (!ValidateForm())
+        {
+            StateHasChanged();
+            return;
+        }
+
+        isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            // Add student to database
+            await StudentService.AddStudentAsync(newStudent);
+            
+            // Refresh data
+            await LoadData();
+            
+            // Hide modal
+            HideAddModal();
+            
+            // Show success message
+            await JSRuntime.InvokeVoidAsync("alert", "Student added successfully!");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error adding student: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
     }
 }
