@@ -1,0 +1,150 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# .NET specific
+bin/
+obj/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+orleans.codegen.cs
+nCrunchTemp_*
+_UpgradeReport_Files/
+Backup*/
+ServiceFabricBackup/
+*.rptproj.bak
+FakesAssemblies/
+
+# Testing
+/coverage
+.pytest_cache/
+htmlcov/
+TestResults/
+[Tt]est[Rr]esult*/
+
+# Production
+/build
+/dist
+*.egg-info/
+[Pp]ublish/
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# Misc
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+*.rsuser
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+
+# Cache
+.cache/
+.npm/
+.eslintcache
+
+# Local files
+*.local
+*.local.*
+
+# System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Package files
+*.tar.gz
+*.zip
+*.rar
+
+# Database
+*.sqlite
+*.db
+*.mdf
+*.ldf
+*.ndf
+
+# Compiled output
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets 
