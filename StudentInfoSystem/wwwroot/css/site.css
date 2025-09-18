@@ -188,3 +188,39 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+/* Table header sort button styling */
+.table-dark .btn-link {
+    color: white !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.table-dark .btn-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white !important;
+}
+
+.table-dark .btn-link:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+
+/* Sort icon styling in table headers */
+.table-dark .oi {
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.8;
+}
+
+.table-dark .btn-link:hover .oi {
+    opacity: 1;
+}
+
+/* Flex layout for table header buttons */
+.table-dark .btn-link.d-flex {
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}

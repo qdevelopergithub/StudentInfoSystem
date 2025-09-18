@@ -18,7 +18,7 @@ namespace StudentInfoSystem.Services
             return await _context.Students.ToListAsync();
         }
 
-        public async Task<List<Student>> GetFilteredStudentsAsync(string? nameFilter, decimal? minMarks, decimal? maxMarks, string? gradeFilter, string? sortField = null, bool isAscending = true)
+        public async Task<List<Student>> GetFilteredStudentsAsync(string? nameFilter, int? ageFilter, decimal? minMarks, decimal? maxMarks, string? gradeFilter, string? sortField = null, bool isAscending = true)
         {
             var query = _context.Students.AsQueryable();
 
@@ -26,6 +26,11 @@ namespace StudentInfoSystem.Services
             if (!string.IsNullOrWhiteSpace(nameFilter))
             {
                 query = query.Where(s => s.Name.ToLower().Contains(nameFilter.ToLower()));
+            }
+
+            if (ageFilter.HasValue)
+            {
+                query = query.Where(s => s.Age == ageFilter.Value);
             }
 
             if (minMarks.HasValue)
