@@ -1,0 +1,444 @@
+@page "/"
+@using StudentInfoSystem.Models
+@using StudentInfoSystem.Services
+@inject StudentService StudentService
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Student Information System</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="oi oi-people"></i> Student Information System
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">
+                                        <i class="oi oi-filter"></i> Filter Students
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="nameFilter" class="form-label">Name</label>
+                                            <input type="text" class="form-control" id="nameFilter"
+                                                   @oninput="OnNameInputChanged"
+                                                   placeholder="Search by name..." />
+                                        </div>
+                                        <div class="col-md-2 mb-3">
+                                            <label for="minMarks" class="form-label">Min Marks</label>
+                                            <input type="number" class="form-control" id="minMarks"
+                                                   @oninput="OnMinMarksInputChanged"
+                                                   min="0" max="100" step="0.1" />
+                                        </div>
+                                        <div class="col-md-2 mb-3">
+                                            <label for="maxMarks" class="form-label">Max Marks</label>
+                                            <input type="number" class="form-control" id="maxMarks"
+                                                   @oninput="OnMaxMarksInputChanged"
+                                                   min="0" max="100" step="0.1" />
+                                        </div>
+                                        <div class="col-md-2 mb-3">
+                                            <label for="gradeFilter" class="form-label">Grade</label>
+                                            <select class="form-select" id="gradeFilter" @onchange="OnGradeFilterChanged">
+                                                <option value="">All Grades</option>
+                                                @foreach (var grade in availableGrades)
+                                                {
+                                                    <option value="@grade">@grade</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 mb-3 d-flex align-items-end">
+                                            <button class="btn btn-outline-secondary" @onclick="ClearFilters">
+                                                <i class="oi oi-x"></i> Clear All Filters
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h4>@totalStudents</h4>
+                                    <p class="mb-0">Total Students</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h4>@averageMarks.ToString("F1")</h4>
+                                    <p class="mb-0">Average Marks</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h4>@filteredStudents.Count</h4>
+                                    <p class="mb-0">Filtered Results</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-secondary text-white">
+                                <div class="card-body text-center">
+                                    <h4>@gradeDistribution.Count</h4>
+                                    <p class="mb-0">Grade Categories</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Grid Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="oi oi-table"></i> Student Records
+                                    </h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    @if (isLoading)
+                                    {
+                                        <div class="text-center p-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <p class="mt-2">Loading students...</p>
+                                        </div>
+                                    }
+                                    else if (filteredStudents.Any())
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-striped mb-0">
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        <th scope="col" style="width: 5%;">#</th>
+                                                        <th scope="col" style="width: 25%;">
+                                                            <button class="btn btn-link text-white p-0 text-decoration-none" @onclick="SortByName">
+                                                                Name
+                                                            </button>
+                                                        </th>
+                                                        <th scope="col" style="width: 10%;">
+                                                            <button class="btn btn-link text-white p-0 text-decoration-none" @onclick="SortByAge">
+                                                                Age
+                                                            </button>
+                                                        </th>
+                                                        <th scope="col" style="width: 15%;">
+                                                            <button class="btn btn-link text-white p-0 text-decoration-none" @onclick="SortByMarks">
+                                                                Marks
+                                                            </button>
+                                                        </th>
+                                                        <th scope="col" style="width: 10%;">
+                                                            <button class="btn btn-link text-white p-0 text-decoration-none" @onclick="SortByGrade">
+                                                                Grade
+                                                            </button>
+                                                        </th>
+                                                        <th scope="col" style="width: 15%;">Performance</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var student in filteredStudents)
+                                                    {
+                                                        <tr>
+                                                            <td>@student.Id</td>
+                                                            <td>
+                                                                <strong>@student.Name</strong>
+                                                            </td>
+                                                            <td>@student.Age</td>
+                                                            <td>
+                                                                <span class="badge @GetMarksBadgeClass(student.Marks)">
+                                                                    @student.Marks.ToString("F1")
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge @GetGradeBadgeClass(student.Grade)">
+                                                                    @student.Grade
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <div class="progress" style="height: 20px;">
+                                                                    <div class="progress-bar @GetProgressBarClass(student.Marks)"
+                                                                         role="progressbar"
+                                                                         style="width: @(student.Marks)%"
+                                                                         aria-valuenow="@student.Marks"
+                                                                         aria-valuemin="0"
+                                                                         aria-valuemax="100">
+                                                                        @student.Marks.ToString("F0")%
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center p-4">
+                                            <i class="oi oi-people text-muted" style="font-size: 3rem;"></i>
+                                            <h5 class="text-muted mt-2">No students found</h5>
+                                            <p class="text-muted">Try adjusting your filter criteria.</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Student> allStudents = new();
+    private List<Student> filteredStudents = new();
+    private List<string> availableGrades = new();
+    private Dictionary<string, int> gradeDistribution = new();
+
+    private string nameFilter = string.Empty;
+    private decimal? minMarks;
+    private decimal? maxMarks;
+    private string gradeFilter = string.Empty;
+
+    private bool isLoading = true;
+    private string sortField = "Name";
+    private bool isAscending = true;
+
+    private int totalStudents = 0;
+    private decimal averageMarks = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            allStudents = await StudentService.GetAllStudentsAsync();
+            availableGrades = await StudentService.GetDistinctGradesAsync();
+            totalStudents = await StudentService.GetTotalStudentsAsync();
+            averageMarks = await StudentService.GetAverageMarksAsync();
+
+            await ApplyFilters();
+            CalculateGradeDistribution();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error loading data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        try
+        {
+            
+            filteredStudents = await StudentService.GetFilteredStudentsAsync(
+                string.IsNullOrWhiteSpace(nameFilter) ? null : nameFilter,
+                minMarks,
+                maxMarks,
+                string.IsNullOrWhiteSpace(gradeFilter) ? null : gradeFilter,
+                sortField,
+                isAscending
+            );
+
+            CalculateGradeDistribution();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error applying filters: {ex.Message}");
+        }
+    }
+
+    private async Task ClearFilters()
+    {
+        nameFilter = string.Empty;
+        minMarks = null;
+        maxMarks = null;
+        gradeFilter = string.Empty;
+        
+        // Clear the input fields by updating the DOM
+        await JSRuntime.InvokeVoidAsync("clearInputFields");
+        
+        await ApplyFilters();
+    }
+
+    private async Task SortBy(string field)
+    {
+        if (sortField == field)
+        {
+            isAscending = !isAscending;
+        }
+        else
+        {
+            sortField = field;
+            isAscending = true;
+        }
+        await ApplyFilters();
+    }
+
+    private async Task SortByName()
+    {
+        await SortBy("Name");
+    }
+
+    private async Task SortByAge()
+    {
+        await SortBy("Age");
+    }
+
+    private async Task SortByMarks()
+    {
+        await SortBy("Marks");
+    }
+
+    private async Task SortByGrade()
+    {
+        await SortBy("Grade");
+    }
+
+    private Timer? filterTimer;
+
+    private void OnNameInputChanged(ChangeEventArgs e)
+    {
+        nameFilter = e.Value?.ToString() ?? string.Empty;
+        OnFilterChanged();
+    }
+
+    private void OnMinMarksInputChanged(ChangeEventArgs e)
+    {
+        if (string.IsNullOrEmpty(e.Value?.ToString()))
+        {
+            minMarks = null;
+        }
+        else if (decimal.TryParse(e.Value.ToString(), out decimal value))
+        {
+            minMarks = value;
+        }
+        OnFilterChanged();
+    }
+
+    private void OnMaxMarksInputChanged(ChangeEventArgs e)
+    {
+        if (string.IsNullOrEmpty(e.Value?.ToString()))
+        {
+            maxMarks = null;
+        }
+        else if (decimal.TryParse(e.Value.ToString(), out decimal value))
+        {
+            maxMarks = value;
+        }
+        OnFilterChanged();
+    }
+
+    private void OnGradeFilterChanged(ChangeEventArgs e)
+    {
+        gradeFilter = e.Value?.ToString() ?? string.Empty;
+        OnFilterChanged();
+    }
+
+    private void OnFilterChanged()
+    {
+        // Clear existing timer
+        filterTimer?.Dispose();
+        
+        // Set new timer to apply filters after 500ms delay
+        filterTimer = new Timer(async _ => 
+        {
+            await InvokeAsync(async () => 
+            {
+                await ApplyFilters();
+                StateHasChanged();
+            });
+        }, null, 500, Timeout.Infinite);
+    }
+
+
+
+    private void CalculateGradeDistribution()
+    {
+        gradeDistribution = filteredStudents
+            .GroupBy(s => s.Grade)
+            .ToDictionary(g => g.Key, g => g.Count());
+    }
+
+    private string GetMarksBadgeClass(decimal marks)
+    {
+        return marks switch
+        {
+            >= 90 => "bg-success",
+            >= 80 => "bg-primary",
+            >= 70 => "bg-info",
+            >= 60 => "bg-warning",
+            _ => "bg-danger"
+        };
+    }
+
+    private string GetGradeBadgeClass(string grade)
+    {
+        return grade switch
+        {
+            "A" => "bg-success",
+            "B" => "bg-primary",
+            "C" => "bg-warning",
+            "D" => "bg-danger",
+            "F" => "bg-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetProgressBarClass(decimal marks)
+    {
+        return marks switch
+        {
+            >= 90 => "bg-success",
+            >= 80 => "bg-primary",
+            >= 70 => "bg-info",
+            >= 60 => "bg-warning",
+            _ => "bg-danger"
+        };
+    }
+
+    private string GetSortIcon(string field)
+    {
+        if (sortField == field)
+        {
+            return isAscending ? "oi-sort-ascending" : "oi-sort-descending";
+        }
+        return "oi-sort-descending";
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        filterTimer?.Dispose();
+        return ValueTask.CompletedTask;
+    }
+}

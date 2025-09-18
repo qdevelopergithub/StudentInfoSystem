@@ -30,5 +30,13 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
+    <script>
+        window.clearInputFields = function() {
+            document.getElementById('nameFilter').value = '';
+            document.getElementById('minMarks').value = '';
+            document.getElementById('maxMarks').value = '';
+            document.getElementById('gradeFilter').value = '';
+        };
+    </script>
 </body>
 </html>
